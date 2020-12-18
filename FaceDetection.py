@@ -5,6 +5,7 @@ import glob
 from cv2 import *
 import collections
 import numpy
+from numpy.lib.function_base import append
 from numpy.lib.shape_base import vsplit
 from scipy.spatial import distance
 
@@ -14,30 +15,28 @@ MouthObject = collections.namedtuple('MouthObject','inSideMount outSideMount ave
 class FaceDetection:
     def __init__(self,detectorPath):
         self.detectorPath = detectorPath
-        self.resize = 2
-        self.two_eyelid_aspect_ratio_standard = 0.4
+        self.resize = 1
+        self.two_eyelid_aspect_ratio_standard = 0.2
         self.mouth_aspect_ratio_standard = 0.45
 
         self.sleeping_status = 'Sleeping'
         self.yawning_mouth_status = "Yawning mouth"
+        self.looking_other_way = 'looking the other way'
 
         self.InitialDetector(self.detectorPath)
         
-    def InitialDetector(self, detectorPath):
+    def InitialDetector(self, shape_detector_Path):
         self.detector = dlib.get_frontal_face_detector()
-        self.predictor = dlib.shape_predictor(detectorPath)
-        self.win = dlib.image_window()
+        self.predictor = dlib.shape_predictor(shape_detector_Path)
     
     def Handler(self,frame):
         shape_arr= self.FaceDetection(frame)
         if shape_arr is None:
             print('shape is incorrect')
-            return
+            return None
         frame, EyeObject_arr = self.EyeSleepDetection(frame, shape_arr)
-        if frame is None:
-            print('frame is empty')
-            return
         frame, YawnMouthObject_arr = self.YawnMouthDetection(frame, shape_arr)
+        frame, looking_other_way_status_arr = self.EarAndNoseDetection(frame, shape_arr)
         return frame
 
     def FaceDetection(self, frame):
@@ -58,6 +57,7 @@ class FaceDetection:
             shape = self.predictor(frame, d)
             print("Part 0: {}, Part 1: {} ...".format(shape.part(0),shape.part(1)))
 
+
             part_arr = []
             if shape is None:
                 return None
@@ -75,10 +75,10 @@ class FaceDetection:
         #=|p1-p4|          P42  |  P41                    P48  |  P47
         if frame is None:
             print('Frame is empty')
-            return 
+            return None, None
         
         EyeObject_arr = []
-
+        scalar = (255,0,0);
         for vec in shape_arr:
             
             ratioPoint37To39 = distance.euclidean((vec[36].x,vec[36].y), (vec[39].x,vec[39].y))#cv2.norm(vec[36]-vec[39],cv2.NORM_L2); #=|P37-P39|
@@ -101,10 +101,11 @@ class FaceDetection:
         for eyeObject in EyeObject_arr:
             if eyeObject.averageAspectRatio < self.two_eyelid_aspect_ratio_standard:
                 sleeping_status_arr.append(self.sleeping_status)
-
-        frame = self.DrawEye(frame, shape_arr)
-        number_of_sleep_status = 'Number of ' + self.sleeping_status + str(len(sleeping_status_arr))
-        cv2.putText(frame,number_of_sleep_status, (20,20), cv2.FONT_HERSHEY_SIMPLEX, 1, 255)
+        print('sleeping len==>',len(sleeping_status_arr))
+        if len(sleeping_status_arr)>0:
+            frame = self.DrawEye(frame, shape_arr)
+            number_of_sleep_status = 'Number of ' + self.sleeping_status + str(len(sleeping_status_arr))
+            cv2.putText(frame,number_of_sleep_status, (20,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, scalar)
 
         return frame, EyeObject_arr
     #def CaculateDistance(self, point1,point2):
@@ -154,18 +155,18 @@ class FaceDetection:
 
             averageAspectRatio= (inSideMount+ outSideMount)/2;
             YawnMouthObject_arr.append(MouthObject(inSideMount, outSideMount, averageAspectRatio))
-        
-        frame = self.DrawMouth(frame, shape_arr)
-
+    
          # detecting yawning mouth status
         yawning_mouth_status_arr = []
+        scalar = (255,0,0)
         for mouthObject in YawnMouthObject_arr:
             if mouthObject.averageAspectRatio > self.mouth_aspect_ratio_standard:
                 yawning_mouth_status_arr.append(self.yawning_mouth_status)
 
-        frame = self.DrawEye(frame, shape_arr)
-        number_of_sleep_status = 'Number of ' + self.yawning_mouth_status + str(len(yawning_mouth_status_arr))
-        cv2.putText(frame,number_of_sleep_status, (20,40), cv2.FONT_HERSHEY_SIMPLEX, 1, 255)
+        if len(yawning_mouth_status_arr):      
+            frame = self.DrawMouth(frame, shape_arr)
+            number_of_sleep_status = 'Number of ' + self.yawning_mouth_status + str(len(yawning_mouth_status_arr))
+            cv2.putText(frame,number_of_sleep_status, (20,50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, scalar)
 
         return frame, YawnMouthObject_arr
 
@@ -187,4 +188,50 @@ class FaceDetection:
 
 
     def EarAndNoseDetection(self, frame, shape_arr):
-        pass
+        #Mapping point of ear and nose
+        #1          28          17
+
+        #2          29          16
+
+        # 3         30         15
+
+        #  4        31        14
+
+        EarAndNoseObject_arr = []
+        for vec in shape_arr:
+            # compute InSideMount
+            ratioPoint1To17 = distance.euclidean((vec[0].x,vec[0].y), (vec[27].x,vec[27].y))/distance.euclidean((vec[27].x,vec[27].y), (vec[16].x,vec[16].y)) #=|(P1-P28)/P28-P17|
+            ratioPoint2To16 = distance.euclidean((vec[1].x,vec[1].y), (vec[28].x,vec[28].y))/distance.euclidean((vec[28].x,vec[28].y), (vec[15].x,vec[15].y)) #=|(P2-P29)/P29-P16|
+            ratioPoint3To15 = distance.euclidean((vec[2].x,vec[2].y), (vec[29].x,vec[29].y))/distance.euclidean((vec[29].x,vec[29].y), (vec[14].x,vec[14].y)) #=|(P3-P30)/P30-P15|
+            ratioPoint4To14 = distance.euclidean((vec[3].x,vec[3].y), (vec[30].x,vec[30].y))/distance.euclidean((vec[30].x,vec[30].y), (vec[13].x,vec[13].y)) #=|(P4-P31)/P31-P14|
+            averageAspectRatio= (ratioPoint1To17+ ratioPoint2To16+ ratioPoint3To15+ ratioPoint4To14)/4;
+            EarAndNoseObject_arr.append(averageAspectRatio)
+
+        # detecting looking_other_way status
+        looking_other_way_status_arr = []
+        scalar = (255,0,0)
+        for averageAspectRatio in EarAndNoseObject_arr:    
+            if averageAspectRatio > 2 or averageAspectRatio < 0.5:
+                looking_other_way_status_arr.append(self.looking_other_way)
+        
+        if len(looking_other_way_status_arr)> 0:
+            frame = self.DrawEarAndNose(frame, shape_arr)
+            number_of_sleep_status = 'Number of ' + self.looking_other_way + str(len(looking_other_way_status_arr))
+            cv2.putText(frame,number_of_sleep_status, (20,80), cv2.FONT_HERSHEY_SIMPLEX,0.5, scalar)
+
+        return frame, looking_other_way_status_arr
+    def DrawEarAndNose(self, frame, shape_arr):
+        scalar = (0,255,0);
+        for part in shape_arr:
+            # Left eye
+            for i in range(1,5):
+                # draw with opencv
+                cv2.line(frame, (part[i].x, part[i].y), (part[i-1].x,part[i-1].y), scalar, 1)
+            for i in range(13,17):
+                # draw with opencv
+                cv2.line(frame, (part[i].x, part[i].y), (part[i-1].x,part[i-1].y), scalar, 1)
+            for i in range(28,31):
+                # draw with opencv
+                cv2.line(frame, (part[i].x, part[i].y), (part[i-1].x,part[i-1].y), scalar, 1)
+
+        return frame

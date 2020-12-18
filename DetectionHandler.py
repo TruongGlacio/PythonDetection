@@ -2,6 +2,9 @@ from GlobalFileImport import GlobalImport
 import numpy as np
 import cv2
 from FaceDetection import FaceDetection
+from PhoneDetection import PhoneDetection
+from VerhicleDetection import VerhicleDetection
+from Roadmarkerdetect import RoadmarkerDetection
 class DetectHandler:
     def __init__(self):
         self.global_import = GlobalImport()
@@ -10,21 +13,30 @@ class DetectHandler:
             return None
 
         self.faceDetection = FaceDetection(self.global_import.SHAPE_PREDIRTOR_68_FACE_LANDMARK)
-
+        self.phoneDetatecton = PhoneDetection(self.global_import.SHAPE_PHONE_DETECTOR_PATH,self.global_import.SHAPE_PREDIRTOR_PHONE_LANDMARK)
+        self.verhicleDetection = VerhicleDetection(self.global_import.SHAPE_VERHICLE_DETECTOR_PATH, self.global_import.SHAPE_VERHICLE_SHAPE_DETECTOR_PATH)
+        self.roadmarkerDetection = RoadmarkerDetection(self.global_import.SHAPE_ROADMARKER_DETECTOR_PATH,self.global_import.SHAPE_PREDIRTOR_ROADMARKER_LANDMARK )
+    
     def Camerahandler(self):
         if self.global_import.CheckCorrectPath() is None:
             print('error')
             return None
         cap = cv2.VideoCapture(0)
+        count = 0
         while(True):
             # Capture frame-by-frame
             ret, frame = cap.read()
             if frame is None:
                 return
+            count += count
+            if count%6 == 0:
+
+                frame = self.faceDetection.Handler(frame)
+                frame = self.phoneDetatecton.Handler(frame)
+                #frame = self.verhicleDetection.Handler(frame)
             # Our operations on the frame come here
             #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             # Display the resulting frame
-            frame =self.faceDetection.Handler(frame)
             cv2.imshow('frame',frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
