@@ -28,12 +28,14 @@ class DetectHandler:
             ret, frame = cap.read()
             if frame is None:
                 return
-            count += count
+            count += 1
             if count%6 == 0:
 
                 frame = self.faceDetection.Handler(frame)
+            if count%5 == 0:
                 frame = self.phoneDetatecton.Handler(frame)
-                #frame = self.verhicleDetection.Handler(frame)
+            if count%4 == 0:
+                frame = self.verhicleDetection.Handler(frame)
             # Our operations on the frame come here
             #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             # Display the resulting frame

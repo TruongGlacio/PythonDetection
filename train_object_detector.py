@@ -59,11 +59,11 @@ options.add_left_right_image_flips = True
 # empirically by checking how well the trained detector works on a test set of
 # images you haven't trained on.  Don't just leave the value set at 5.  Try a
 # few different C values and see what works best for your data.
-options.C = 5
+options.C = 8
 # Tell the code how many CPU cores your computer has for the fastest training.
-options.num_threads = 4
+options.num_threads = 6
 options.be_verbose = True
-
+options.upsample_limit = 0
 
 training_xml_path = os.path.join(faces_folder, "training.xml")
 testing_xml_path = os.path.join(faces_folder, "testing.xml")
@@ -75,7 +75,7 @@ testing_xml_path = os.path.join(faces_folder, "testing.xml")
 # images with boxes.  To see how to use it read the tools/imglab/README.txt
 # file.  But for this example, we just use the training.xml file included with
 # dlib.
-dlib.train_simple_object_detector(training_xml_path, "detector.svm", options)
+dlib.train_simple_object_detector(training_xml_path, "dlib_front_and_rear_vehicles.svm", options)
 
 
 
@@ -84,12 +84,12 @@ dlib.train_simple_object_detector(training_xml_path, "detector.svm", options)
 # average precision.
 print("")  # Print blank line to create gap from previous output
 print("Training accuracy: {}".format(
-    dlib.test_simple_object_detector(training_xml_path, "detector.svm")))
+    dlib.test_simple_object_detector(training_xml_path, "dlib_front_and_rear_vehicles.svm")))
 # However, to get an idea if it really worked without overfitting we need to
 # run it on images it wasn't trained on.  The next line does this.  Happily, we
 # see that the object detector works perfectly on the testing images.
 print("Testing accuracy: {}".format(
-    dlib.test_simple_object_detector(testing_xml_path, "detector.svm")))
+    dlib.test_simple_object_detector(testing_xml_path, "dlib_front_and_rear_vehicles.svm")))
 
 
 
@@ -97,7 +97,7 @@ print("Testing accuracy: {}".format(
 
 # Now let's use the detector as you would in a normal application.  First we
 # will load it from disk.
-detector = dlib.simple_object_detector("detector.svm")
+detector = dlib.simple_object_detector("dlib_front_and_rear_vehicles.svm")
 
 # We can look at the HOG filter we learned.  It should look like a face.  Neat!
 win_det = dlib.image_window()
@@ -123,10 +123,10 @@ for f in glob.glob(os.path.join(faces_folder, "*.jpg")):
 
 # Next, suppose you have trained multiple detectors and you want to run them
 # efficiently as a group.  You can do this as follows:
-detector1 = dlib.fhog_object_detector("detector.svm")
+detector1 = dlib.fhog_object_detector("dlib_front_and_rear_vehicles.svm")
 # In this example we load detector.svm again since it's the only one we have on
 # hand. But in general it would be a different detector.
-detector2 = dlib.fhog_object_detector("detector.svm") 
+detector2 = dlib.fhog_object_detector("dlib_front_and_rear_vehicles.svm") 
 # make a list of all the detectors you want to run.  Here we have 2, but you
 # could have any number.
 detectors = [detector1, detector2]

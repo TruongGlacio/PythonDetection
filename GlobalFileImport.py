@@ -21,4 +21,22 @@ class GlobalImport:
         if not os.path.isfile(self.SHAPE_PREDIRTOR_68_FACE_LANDMARK):
             print ('face landmark model not exit')
             return None
+        if not os.path.isfile(self.SHAPE_PHONE_DETECTOR_PATH):
+            print ('phone detector model not exit')
+            return None
+        if not os.path.isfile(self.SHAPE_PREDIRTOR_PHONE_LANDMARK):
+            print ('phone landmark model not exit')
+            return None
+        # if not os.path.isfile(self.SHAPE_VERHICLE_SHAPE_DETECTOR_PATH):
+        #     print ('verhicle detector model not exit')
+        #     return None
+        if not os.path.isfile(self.SHAPE_VERHICLE_DETECTOR_PATH):
+            print ('verhicle landmark model not exit')
+            return None
+        if not os.path.isfile(self.SHAPE_ROADMARKER_DETECTOR_PATH):
+            print ('roadmarker model model not exit')
+            return None
+        if not os.path.isfile(self.SHAPE_PREDIRTOR_ROADMARKER_LANDMARK):
+            print ('roadmarker landmark model not exit')
+            return None
         return True
