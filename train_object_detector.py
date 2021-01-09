@@ -59,11 +59,11 @@ options.add_left_right_image_flips = True
 # empirically by checking how well the trained detector works on a test set of
 # images you haven't trained on.  Don't just leave the value set at 5.  Try a
 # few different C values and see what works best for your data.
-options.C = 8
+options.C = 5
 # Tell the code how many CPU cores your computer has for the fastest training.
-options.num_threads = 6
+options.num_threads = 4
 options.be_verbose = True
-options.upsample_limit = 0
+options.upsample_limit = 1
 
 training_xml_path = os.path.join(faces_folder, "training.xml")
 testing_xml_path = os.path.join(faces_folder, "testing.xml")
@@ -75,7 +75,8 @@ testing_xml_path = os.path.join(faces_folder, "testing.xml")
 # images with boxes.  To see how to use it read the tools/imglab/README.txt
 # file.  But for this example, we just use the training.xml file included with
 # dlib.
-dlib.train_simple_object_detector(training_xml_path, "dlib_front_and_rear_vehicles.svm", options)
+train_model = dlib.train_simple_object_detector(training_xml_path, "dlib_front_and_rear_vehicles.svm", options)
+train_model.save('dlib_front_and_rear_vehicles.svm')
 
 
 
@@ -156,7 +157,7 @@ boxes = [boxes_img1, boxes_img2]
 
 detector2 = dlib.train_simple_object_detector(images, boxes, options)
 # We could save this detector to disk by uncommenting the following.
-#detector2.save('detector2.svm')
+detector2.save('dlib_front_and_rear_vehicles.svm')
 
 # Now let's look at its HOG filter!
 win_det.set_image(detector2)

@@ -37,7 +37,7 @@ class FaceDetection:
         frame, EyeObject_arr = self.EyeSleepDetection(frame, shape_arr)
         frame, YawnMouthObject_arr = self.YawnMouthDetection(frame, shape_arr)
         frame, looking_other_way_status_arr = self.EarAndNoseDetection(frame, shape_arr)
-        return frame
+        return frame,EyeObject_arr,YawnMouthObject_arr, looking_other_way_status_arr
 
     def FaceDetection(self, frame):
         if frame is None:
@@ -78,7 +78,7 @@ class FaceDetection:
             return None, None
         
         EyeObject_arr = []
-        scalar = (255,0,0);
+        scalar = (255,0,0)
         for vec in shape_arr:
             
             ratioPoint37To39 = distance.euclidean((vec[36].x,vec[36].y), (vec[39].x,vec[39].y))#cv2.norm(vec[36]-vec[39],cv2.NORM_L2); #=|P37-P39|
@@ -93,7 +93,7 @@ class FaceDetection:
             ratioPoint45To47 = distance.euclidean((vec[44].x,vec[44].y), (vec[46].x,vec[46].y))#=|P45-P47|
             rigthEar = (ratioPoint44To48 + ratioPoint45To47) / (2.0 * ratioPoint43To46);
 
-            averageAspectRatio=(leftEar+rigthEar)/2;
+            averageAspectRatio=(leftEar+rigthEar)/2
             EyeObject_arr.append(EyeObject(leftEar, rigthEar, averageAspectRatio))
 
         # detecting slepping status
@@ -102,6 +102,7 @@ class FaceDetection:
             if eyeObject.averageAspectRatio < self.two_eyelid_aspect_ratio_standard:
                 sleeping_status_arr.append(self.sleeping_status)
         print('sleeping len==>',len(sleeping_status_arr))
+
         if len(sleeping_status_arr)>0:
             frame = self.DrawEye(frame, shape_arr)
             number_of_sleep_status = 'Number of ' + self.sleeping_status + str(len(sleeping_status_arr))
@@ -111,7 +112,7 @@ class FaceDetection:
     #def CaculateDistance(self, point1,point2):
 
     def DrawEye(self, frame, shape_arr):
-        scalar = (0,255,0);
+        scalar = (0,255,0)
         for part in shape_arr:
             # Left eye
             for i in range(37,42):
@@ -124,7 +125,7 @@ class FaceDetection:
                 frame = cv2.line(frame, (part[i].x,part[i].y), (part[i-1].x,part[i-1].y),scalar,1)
 
             frame = cv2.line(frame, (part[42].x,part[42].y), (part[42].x,part[42].y),scalar, 1)
-        return frame;
+        return frame
 
     def YawnMouthDetection(self, frame, shape_arr):
                 #              P51             P53

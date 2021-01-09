@@ -31,11 +31,11 @@ class DetectHandler:
             count += 1
             if count%6 == 0:
 
-                frame = self.faceDetection.Handler(frame)
-            if count%5 == 0:
-                frame = self.phoneDetatecton.Handler(frame)
+                frame,EyeObject_arr,YawnMouthObject_arr, looking_other_way_status_arr = self.faceDetection.Handler(frame)
+            #if count%5 == 0:
+                #frame, dets = self.phoneDetatecton.Handler(frame)
             if count%4 == 0:
-                frame = self.verhicleDetection.Handler(frame)
+                frame, dets = self.verhicleDetection.Handler(frame)
             # Our operations on the frame come here
             #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
             # Display the resulting frame

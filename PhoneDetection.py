@@ -23,8 +23,8 @@ class PhoneDetection:
         #self.shape_predictor = dlib.shape_predictor(shape_detector_Path) # deserialize .dat file
         
     def Handler(self, frame):
-        frame = self.PhoneDetection(frame)
-        return frame
+        frame,dets = self.PhoneDetection(frame)
+        return frame, dets
 
     def PhoneDetection(self, frame):
         if frame is None:
@@ -48,4 +48,4 @@ class PhoneDetection:
             #     p = shape.part(i)
             #     cv2.circle(frame, (p.x, p.y), 2, 255, 1)
             #     cv2.putText(frame, str(i), (p.x + 4, p.y), cv2.FONT_HERSHEY_SIMPLEX, 0.25, (255, 255, 255))
-        return frame
+        return frame, dets
